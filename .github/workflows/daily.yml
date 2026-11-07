@@ -23,7 +23,7 @@ jobs:
       USER_DATA_DIR: ./zalda2
       OUTPUT_DIR: output
       LOGO_PATH: ./logo.png
-      PAGE_NAME: nextclip
+      PAGE_NAME: thenextclip.hq
       GRAPH_API_VERSION: v21.0
       OLLAMA_BASE_URL: https://ollama.com/v1
       OLLAMA_MODEL: gemma4

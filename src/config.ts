@@ -39,7 +39,7 @@ export const config = {
   groqBaseUrl: env("GROQ_BASE_URL", "https://api.groq.com/openai/v1"),
   groqModel: env("GROQ_MODEL", "meta-llama/llama-4-scout-17b-16e-instruct"),
   databaseUrl: env("DATABASE_URL"),
-  pageName: env("PAGE_NAME", "nextclip"),
+  pageName: env("PAGE_NAME", "thenextclip.hq"),
   debug: envBool("DEBUG", false),
 };
 export function graphUrl(version: string, p: string): string {
