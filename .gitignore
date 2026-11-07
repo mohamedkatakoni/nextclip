@@ -1,5 +1,13 @@
 node_modules/
+output/
 dist/
 .env
-videos/*
-!videos/.gitkeep
+cookies.json
+cookies2.json
+zalda/
+zalda2/
+**/SingletonLock
+**/SingletonCookie
+**/SingletonSocket
+**/DevToolsActivePort
+src/generated/
