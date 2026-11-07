@@ -1,0 +1,25 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model PostedVideo {
+  id         String    @id
+  account    String
+  url        String    @unique
+  text       String
+  caption    String
+  videoUrl   String?
+  igMediaId  String?
+  status     String    @default("pending")
+  error      String?
+  createdAt  DateTime  @default(now())
+  postedAt   DateTime?
+
+  @@index([status])
+  @@index([account])
+}

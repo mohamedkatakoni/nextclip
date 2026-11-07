@@ -1,0 +1,92 @@
+name: nextclip - scrape X and post to Instagram
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nextclip-daily
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      X_ACCOUNTS: Nocapmedia,JCFights
+      MAX_POSTS: "15"
+      HEADLESS: "true"
+      USER_DATA_DIR: ./zalda2
+      OUTPUT_DIR: output
+      LOGO_PATH: ./logo.png
+      PAGE_NAME: nextclip
+      GRAPH_API_VERSION: v21.0
+      OLLAMA_BASE_URL: https://ollama.com/v1
+      OLLAMA_MODEL: gemma4
+      GROQ_BASE_URL: https://api.groq.com/openai/v1
+      GROQ_MODEL: meta-llama/llama-4-scout-17b-16e-instruct
+      INSTAGRAM_ACCOUNT_ID: ${{ secrets.INSTAGRAM_ACCOUNT_ID }}
+      FACEBOOK_ACCESS_TOKEN: ${{ secrets.FACEBOOK_ACCESS_TOKEN }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      OLLAMA_API_KEY: ${{ secrets.OLLAMA_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22.16.0"
+          cache: npm
+
+      - name: Cache Puppeteer Chrome
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/puppeteer
+          key: puppeteer-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Install Chromium
+        run: npx puppeteer browsers install chrome
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Apply database migrations
+        run: |
+          for attempt in 1 2 3 4 5 6; do
+            echo "Migration attempt $attempt..."
+            if npx prisma migrate deploy; then
+              exit 0
+            fi
+            delay=$((attempt * 10))
+            echo "Migration attempt $attempt failed; retrying in ${delay}s..."
+            sleep "$delay"
+          done
+          echo "Database migrations failed after 6 attempts."
+          exit 1
+
+      - name: Build
+        run: npm run build
+
+      - name: Run pipeline
+        run: npm start
+
+      - name: Upload failure screenshot
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: nextclip-failure
+          path: output/
+          if-no-files-found: ignore
+          retention-days: 7
